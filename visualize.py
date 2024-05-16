@@ -29,7 +29,7 @@ class ImageViewer:
 
     def draw_img(self, frame_id: int ,det_objs, img_path: Path):
         img = Image.open(img_path)
-        # 牛の領域を描画
+        # 描画
         self.cam_visualizer.draw_annotations(img, det_objs, self.cam_rec_type)
         
         if self.put_timestamp: # タイムスタンプを挿入
@@ -49,6 +49,24 @@ class ImageViewer:
         ) as visualizer:
             for im in imgs:
                 visualizer.update(Image.fromarray(im))
+
+            print(f"Save as {output_file}")
+    
+    def create_video_no_draw(self, img_lists: list, output_file: str, fps: int=5): # 画像リストから動画を作成
+        print(f'[INFO] creating video: {output_file}')
+        img = np.array(Image.open(img_lists[0]), dtype=np.uint8)
+        
+        W, H = img.shape[:2]
+        with VideoWriter(
+            filename=output_file,
+            framerate=fps,
+            size=(W, H),
+        ) as visualizer:
+            for img_list in img_lists:
+                img = Image.open(img_list)
+                img_np = np.array(img, dtype=np.uint8)
+                visualizer.update(Image.fromarray(img_np))
+                img.close()
 
             print(f"Save as {output_file}")
 
@@ -97,24 +115,16 @@ def main(args):
                     total=frame_num,
                 )
             )
+        
+        # 動画の保存
+        video_path = f"{output_dir / args.prefix}.mp4"
+        viewer.create_video(draw_img_list, str(video_path), args.fps)
+        print(f'[INFO] result saved to: {video_path}')
     else: # 画像の読み込み
         draw_img_list = []
         print(f'[INFO] drawing information')
-        with ProcessPoolExecutor(max_workers=psutil.cpu_count()) as executor:
-            draw_img_list = list(
-                tqdm(
-                    executor.map(
-                        viewer.img_open,
-                        img_lists,
-                    ),
-                    total=frame_num,
-                )
-            )
+        viewer.create_video_no_draw(img_lists, str(output_dir / f"{args.prefix}.mp4"), args.fps)
         
-    # 動画の保存
-    video_path = f"{output_dir / args.prefix}.mp4"
-    viewer.create_video(draw_img_list, str(video_path), args.fps)
-    print(f'[INFO] result saved to: {video_path}')
 
 
 if __name__ == "__main__":
@@ -123,21 +133,65 @@ if __name__ == "__main__":
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     # input options
-    parser.add_argument("-i", "--img_dir", type=Path, help="path to img directory", required=True)
-    parser.add_argument("-o", "--output_dir", type=Path, required=True, help="path/to/mp4/output/dir")
-    parser.add_argument("-p", "--prefix", default="detect", help="mp4/file/name")
+    parser.add_argument(
+        "-i", "--img_dir", 
+        type=Path, 
+        help="path to img directory", 
+        required=True
+        )
+    parser.add_argument(
+        "-o", "--output_dir", 
+        type=Path, 
+        required=True, 
+        help="path/to/mp4/output/dir"
+        )
+    parser.add_argument(
+        "-p", "--prefix", 
+        default="detect", 
+        help="mp4/file/name"
+        )
     
     # drawing options
-    parser.add_argument("-c", "--csv_path", default=None, help="text of unassociated bboxes", required=False)
-    parser.add_argument('--no_textbox', action='store_true' , help='not draw id box')
-    parser.add_argument("-f", "--fps", type=float, default=30, help="FPS of video")
-    parser.add_argument("-r","--rec_type", default="regular", help="/choose/rectangle/type/rotate/or/regular/")
-    parser.add_argument('--t_end', type=int, help='end frame number')
+    parser.add_argument(
+        "-c", "--csv_path", 
+        default=None, 
+        help="text of unassociated bboxes", 
+        required=False
+        )
+    parser.add_argument(
+        '--no_textbox', 
+        action='store_true' , 
+        help='not draw id box'
+        )
+    parser.add_argument(
+        "-f", "--fps", 
+        type=float, 
+        default=30, 
+        help="FPS of video"
+        )
+    parser.add_argument(
+        "-r","--rec_type",
+        default="regular", 
+        help="/choose/rectangle/type/rotate/or/regular/"
+        )
+    parser.add_argument(
+        '--t_end', 
+        type=int, 
+        help='end frame number'
+        )
     parser.add_argument(
         "--put_timestamp", 
         action="store_true", 
         help="Put timestamp on output video"
     )
+    
+    # parralel options
+    parser.add_argument(
+        "-j", "--jobs", 
+        type=int, 
+        default=psutil.cpu_count(), 
+        help="number of parallel jobs"
+        )
 
     args = parser.parse_args()
     show_args(args)

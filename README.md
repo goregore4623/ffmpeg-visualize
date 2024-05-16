@@ -1,4 +1,4 @@
-# 画像をffmpeg形式の画像にするプログラム
+# 画像をffmpeg形式の動画にするプログラム
 
 ## environment
 python 3.10.11 \
