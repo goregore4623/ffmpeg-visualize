@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "ffmpeg-visualize"
+version = "0.1.0"
+description = "image visualize"
+authors = ["goregore4623 <4623501@ed.tus.ac.jp>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+ffmpeg-python = "^0.2.0"
+pathlib = "^1.0.1"
+argparse = "^1.4.0"
+opencv-python = "^4.9.0.80"
+tqdm = "^4.66.4"
+numpy = "^1.26.4"
+pillow = "^10.3.0"
+psutil = "^5.9.8"
+seaborn = "^0.13.2"
+shapely = "^2.0.4"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
