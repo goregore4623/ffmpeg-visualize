@@ -161,7 +161,6 @@ cython_debug/
 
 
 # データセットの保存先
-/img
 /results
 
 # モデルファイル
