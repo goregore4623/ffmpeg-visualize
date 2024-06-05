@@ -97,6 +97,7 @@ def main(args):
             put_timestamp = args.put_timestamp,
         )
     
+    video_path = f"{output_dir / args.prefix}.mp4"
     if csv_path is not None: # 描画情報がある場合
         det_objs = _load_sequence(csv_path)
         
@@ -117,13 +118,13 @@ def main(args):
             )
         
         # 動画の保存
-        video_path = f"{output_dir / args.prefix}.mp4"
         viewer.create_video(draw_img_list, str(video_path), args.fps)
-        print(f'[INFO] result saved to: {video_path}')
     else: # 画像の読み込み
         draw_img_list = []
         print(f'[INFO] drawing information')
-        viewer.create_video_no_draw(img_lists, str(output_dir / f"{args.prefix}.mp4"), args.fps)
+        viewer.create_video_no_draw(img_lists, str(video_path), args.fps)
+    
+    print(f'[INFO] result saved to: {video_path}')
         
 
 
